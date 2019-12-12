@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';
 
+// Crea la lista de imagenes.
+var pathsImages = [];
+
 Future<void> main() async {
   // Asegura que se ha iniciado toda la aplicacion.
   WidgetsFlutterBinding.ensureInitialized();
@@ -105,8 +108,10 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                         // Asegurarse de que la camara este iniciada.
                         await _initializeControllerFuture;
 
-                        // Crea la lista de imagenes.
-                        final pathsImages = List<String>();
+                        // Elimina todas las fotos que puedan estar guardadas
+                        while(pathsImages.isNotEmpty){
+                          pathsImages.removeLast();
+                        }
 
                         for(var i = 0; i < 5; i++) {
                           // Construye la ruta donde se guardara la imagen
@@ -120,7 +125,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                           await _controller.takePicture(path);
 
                           // Añade la imagen a la lista de imagenes.
-                          pathsImages.add(path);
+                          pathsImages.add({"ruta": path, "seleccionada": false});
                           print("foto");
                           // sleep(const Duration(seconds: 1));
                         }
@@ -128,7 +133,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => DisplayPictureScreen(imagesPaths: pathsImages),
+                            builder: (context) => DisplayPictureScreen(),
                           ),
                         );
                       } catch (e) {
@@ -153,47 +158,116 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
 // Pantalla que muestra las fotos hechas por el usuario
 class DisplayPictureScreen extends StatelessWidget {
-  final List<String> imagesPaths;
 
-  const DisplayPictureScreen({Key key, this.imagesPaths}) : super(key: key);
+  const DisplayPictureScreen({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Imagenes')),
-      body: Column(
-          children: [
-            Expanded(
-              child: Image.file(File(imagesPaths.elementAt(2)))
-            ),
-            Container(
-              height: 150,
-              width: MediaQuery.of(context).size.width,
-              child: FittedBox(
-                child: Row(
-                  children: <Widget>[
-                    Image.file(File(imagesPaths.elementAt(0))),
-                    Image.file(File(imagesPaths.elementAt(1))),
-                    Image.file(File(imagesPaths.elementAt(2))),
-                    Image.file(File(imagesPaths.elementAt(3))),
-                    Image.file(File(imagesPaths.elementAt(4))),
-                  ],
-                ),
-              ),
-            ),
-            InkWell(
-              child: Container(
-                  height: 75,
-                  width: MediaQuery.of(context).size.width,
-                  color: Colors.blue,
-                  child: Center(child: Icon(Icons.share))
-              ),
-              onTap: () {
-                print("Hola");
-              },
-            ),
-          ]
-      )
+      body: Galeria(),
     );
   }
+}
+
+class ImagenGaleria extends StatefulWidget{
+  ImagenGaleria({Key key, @required this.imagen, @required this.onChanged}): super(key: key);
+
+  var imagen;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  State<ImagenGaleria> createState(){
+    print("Imagen creada");
+    return new ImagenGaleriaState(imgst: imagen, onChanged: onChanged);
+  }
+}
+
+class ImagenGaleriaState extends State<ImagenGaleria>{
+
+  ImagenGaleriaState({this.imgst, this.onChanged});
+
+  var imgst;
+  final ValueChanged<bool> onChanged;
+
+  void _click(){
+    print("Click");
+    setState(() {
+      for(var i in pathsImages){
+        i["seleccionada"] = false;
+      }
+      imgst["seleccionada"] = true;
+    });
+    onChanged(true);
+  }
+
+  @override
+  Widget build(BuildContext context){
+    return FlatButton(
+      onPressed: (){_click();},
+      child: Image.file(File(imgst["ruta"]))
+    );
+  }
+}
+
+class Galeria extends StatefulWidget{
+  @override
+  State<Galeria> createState(){
+    return new GaleriaState();
+  }
+}
+
+class GaleriaState extends State<Galeria>{
+
+  void _cambiarImagen(p){
+    setState(() {
+      print("Cambiar imagen");
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Column(
+      children: <Widget>[
+        Expanded(
+            child: Image.file(imgSeleccionada())
+        ),
+        Container(
+          height: 150,
+          width: MediaQuery.of(context).size.width,
+          child: FittedBox(
+              child: Row(
+                children: <Widget>[
+                  for(var i in pathsImages) ImagenGaleria(imagen: i, onChanged: _cambiarImagen,)
+                ],
+              )
+          ),
+        ),
+        InkWell(
+          child: Container(
+              height: 75,
+              width: MediaQuery.of(context).size.width,
+              color: Colors.blue,
+              child: Center(child: Icon(Icons.share))
+          ),
+          onTap: () {
+            print("Hola");
+          },
+        ),
+      ],
+    );
+
+  }
+
+}
+
+File imgSeleccionada(){
+  for(var img in pathsImages){
+    if(img["seleccionada"]){
+      return File(img["ruta"]);
+    }
+  }
+  pathsImages.elementAt(2)["seleccionada"] = true;
+  return File(pathsImages.elementAt(2)["ruta"]);
 }
