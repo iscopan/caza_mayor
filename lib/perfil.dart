@@ -1,10 +1,13 @@
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Perfil extends StatelessWidget{
-  const Perfil({Key key}) : super(key: key);
+  final FirebaseUser detailsUser;
+
+  const Perfil({Key key, @required this.detailsUser}) : super(key: key);
 
   @override
   Widget build(BuildContext context){
@@ -20,7 +23,7 @@ class Perfil extends StatelessWidget{
                 child: Container(
                     child: Image(
                         fit: BoxFit.cover,
-                        image: new NetworkImage("https://pbs.twimg.com/profile_images/1190723504569831426/7BfbiCW1_400x400.jpg")
+                        image: new NetworkImage(detailsUser.photoUrl)
                     )
                 ),
               ),
@@ -32,7 +35,7 @@ class Perfil extends StatelessWidget{
               child: Column(
                 children: <Widget>[
                   Text(
-                    "Nombre Apellido Apellido",
+                    detailsUser.displayName.toString(),
                     style: TextStyle(fontSize: 20.0),
                   ),
                   Text(
