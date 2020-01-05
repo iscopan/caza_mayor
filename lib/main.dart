@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:camera/camera.dart';
+import 'package:caza_mayor/perfil.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';
@@ -70,7 +71,34 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Caza Mayor')),
+      appBar: AppBar(
+        title: Text("Caza Mayor"),
+        actions: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(right: 15.0, top: 5.0, bottom: 5.0),
+            child: InkWell(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(100),
+                child: Container(
+                    child: Image(
+                        fit: BoxFit.cover,
+                        image: new NetworkImage("https://pbs.twimg.com/profile_images/1190723504569831426/7BfbiCW1_400x400.jpg")
+                    )
+                ),
+              ),
+              onTap: (){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Perfil(),
+                  ),
+                );
+              }
+
+            )
+          )
+        ],
+      ),
       // Espera hasta que el controlador este iniciado antes de mostrar
       // la camara. Se usa un FutureBuilder para mostrar un icono de
       // carga hasta que se muestre la camara.
@@ -252,7 +280,7 @@ class GaleriaState extends State<Galeria>{
               child: Center(child: Icon(Icons.share))
           ),
           onTap: () {
-            print("Hola");
+            print("Hola"); // EUEUEU
           },
         ),
       ],
