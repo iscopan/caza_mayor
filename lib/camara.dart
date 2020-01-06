@@ -5,6 +5,7 @@ import 'package:caza_mayor/perfil.dart';
 import 'package:caza_mayor/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';
 
@@ -138,11 +139,16 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                             print("foto");
                             // sleep(const Duration(seconds: 1));
                           }
+                          // Coordenadas de la captura
+                          Geolocator geolocator = Geolocator();
+                          Position currentLocation = await geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
+
+
                           // Cuando la foto se haga, la muestra en otra pantalla.
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => DisplayPictureScreen(),
+                              builder: (context) => DisplayPictureScreen(location: currentLocation,),
                             ),
                           );
                         } catch (e) {
@@ -167,14 +173,15 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
 // Pantalla que muestra las fotos hechas por el usuario
 class DisplayPictureScreen extends StatelessWidget {
+  final Position location;
 
-  const DisplayPictureScreen({Key key}) : super(key: key);
+  const DisplayPictureScreen({Key key, @required this.location}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Imagenes')),
-      body: Galeria(),
+      body: Galeria(location: location,),
     );
   }
 }
@@ -200,7 +207,6 @@ class ImagenGaleriaState extends State<ImagenGaleria>{
   final ValueChanged<bool> onChanged;
 
   void _click(){
-    print("Click");
     setState(() {
       for(var i in pathsImages){
         i["seleccionada"] = false;
@@ -220,6 +226,10 @@ class ImagenGaleriaState extends State<ImagenGaleria>{
 }
 
 class Galeria extends StatefulWidget{
+  final Position location;
+
+  const Galeria({Key key, @required this.location}): super(key: key);
+
   @override
   State<Galeria> createState(){
     return new GaleriaState();
@@ -230,7 +240,7 @@ class GaleriaState extends State<Galeria>{
 
   void _cambiarImagen(p){
     setState(() {
-      print("Cambiar imagen");
+      print("Cambia imagen");
     });
   }
 
@@ -260,8 +270,9 @@ class GaleriaState extends State<Galeria>{
               color: Colors.blue,
               child: Center(child: Icon(Icons.share))
           ),
-          onTap: () {
-            print("Hola"); // EUEUEU
+          onTap: () async {
+            List<Placemark> placemark = await Geolocator().placemarkFromPosition(widget.location);
+            print(placemark[0].locality);
           },
         ),
       ],
