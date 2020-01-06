@@ -5,9 +5,11 @@ import 'package:caza_mayor/perfil.dart';
 import 'package:caza_mayor/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';
+import 'package:esys_flutter_share/esys_flutter_share.dart';
 
 // Pantalla que permite hacer una foto con la camara dada.
 class TakePictureScreen extends StatefulWidget {
@@ -137,7 +139,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                             // Añade la imagen a la lista de imagenes.
                             pathsImages.add({"ruta": path, "seleccionada": false});
                             print("foto");
-                            // sleep(const Duration(seconds: 1));
+                            // sleep(const Duration(seconds: 1)); <----------------------------------
                           }
                           // Coordenadas de la captura
                           Geolocator geolocator = Geolocator();
@@ -272,7 +274,12 @@ class GaleriaState extends State<Galeria>{
           ),
           onTap: () async {
             List<Placemark> placemark = await Geolocator().placemarkFromPosition(widget.location);
-            print(placemark[0].locality);
+            final ciudad = placemark[0].locality;
+            final calle = placemark[0].thoroughfare;
+            final texto = "He cazado a un perro peligroso en " + calle + " #" + ciudad + " #CazaMayor";
+            print(texto);
+            File imagen = imgSeleccionada();
+            await Share.file("Caza Mayor", "cazamayor.png", imagen.readAsBytesSync(), "image/png", text: texto);
           },
         ),
       ],
