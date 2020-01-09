@@ -140,7 +140,7 @@ class _MyAppState extends State<MyApp>{
                 if(user != null){
 
                   _getData(user).then((detailsUser){
-                    
+
                     print("Ha entrado correctamente");
                     setState(() {
                       isFacebookLoginIn = true;
