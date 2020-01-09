@@ -138,12 +138,13 @@ class _MyAppState extends State<MyApp>{
               onTap: () => _login().then((user){
 
                 if(user != null){
-                  print("Ha entrado correctamente");
-                  setState(() {
-                    isFacebookLoginIn = true;
-                  });
 
                   _getData(user).then((detailsUser){
+                    
+                    print("Ha entrado correctamente");
+                    setState(() {
+                      isFacebookLoginIn = true;
+                    });
 
                     Navigator.push(
                         context,
