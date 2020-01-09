@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:camera/camera.dart';
+import 'package:caza_mayor/clases.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:caza_mayor/camara.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -63,7 +64,45 @@ class _MyAppState extends State<MyApp>{
         print(result.errorMessage);
         break;
     }
+
     return user;
+
+  }
+
+  Future<Usuario> _getData(FirebaseUser user) async{
+
+    Usuario detailsUser = new Usuario(
+      foto: user.photoUrl,
+      nombre: user.displayName,
+      uid: user.uid,
+    );
+
+    // BASE DE DATOS
+
+    final databaseReference = Firestore.instance;
+
+    QuerySnapshot resultado = await databaseReference.collection('usuarios').where('uid', isEqualTo: detailsUser.uid).getDocuments();
+    List<DocumentSnapshot> documentos = resultado.documents;
+
+    if(documentos.length == 0){
+      // no existe el usuario en la base de datos, por lo que lo creamos
+      await databaseReference.collection('usuarios').document(detailsUser.uid)
+        .setData({
+          'uid': detailsUser.uid,
+          'foto': detailsUser.foto,
+          'nombre': detailsUser.nombre,
+          'ubiCazas': []
+        });
+    }else{
+      // el usuario existe, por lo que recuperamos sus cazas
+      for(int i = 0; i < documentos[0]['ubiCazas'].length; i++){
+        detailsUser.ubiCazas.add(new Ubicacion(latitud: documentos[0]['ubiCazas'][i]['latitud'], longitud: documentos[0]['ubiCazas'][i]['longitud']));
+      }
+      
+    }
+
+    return detailsUser;
+
   }
 
   Future<bool> _logout() async{
@@ -94,18 +133,27 @@ class _MyAppState extends State<MyApp>{
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                color: Colors.blue,
+                color: Colors.red,
               ),
               onTap: () => _login().then((user){
+
                 if(user != null){
                   print("Ha entrado correctamente");
                   setState(() {
                     isFacebookLoginIn = true;
                   });
-                  Navigator.push(
-                      context,
-                      new MaterialPageRoute(builder: (context) => new TakePictureScreen(camera: widget.camera, detailsUser: user))
-                  );
+
+                  _getData(user).then((detailsUser){
+
+                    Navigator.push(
+                        context,
+                        new MaterialPageRoute(builder: (context) => new TakePictureScreen(
+                            camera: widget.camera,
+                            detailsUser: detailsUser))
+                    );
+
+                  });
+
                 }else{
                   print("Ha ocurrido un error");
                 }
@@ -125,7 +173,7 @@ class _MyAppState extends State<MyApp>{
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                color: Colors.blue,
+                color: Colors.red,
               ),
               onTap: () => _logout().then((response){
                 if(response){

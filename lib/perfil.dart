@@ -1,11 +1,11 @@
-import 'dart:io';
-
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:caza_mayor/clases.dart';
+import 'package:caza_mayor/mapa.dart';
+import 'package:caza_mayor/podium.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Perfil extends StatelessWidget{
-  final FirebaseUser detailsUser;
+  final Usuario detailsUser;
 
   const Perfil({Key key, @required this.detailsUser}) : super(key: key);
 
@@ -13,7 +13,7 @@ class Perfil extends StatelessWidget{
   Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(title: Text("Perfil"),),
-      body: ListView(
+      body: Column(
         children: <Widget>[
           Center(
             child: Padding(
@@ -23,7 +23,7 @@ class Perfil extends StatelessWidget{
                 child: Container(
                     child: Image(
                         fit: BoxFit.cover,
-                        image: new NetworkImage(detailsUser.photoUrl)
+                        image: new NetworkImage(detailsUser.foto)
                     )
                 ),
               ),
@@ -35,11 +35,11 @@ class Perfil extends StatelessWidget{
               child: Column(
                 children: <Widget>[
                   Text(
-                    detailsUser.displayName.toString(),
+                    detailsUser.nombre,
                     style: TextStyle(fontSize: 20.0),
                   ),
                   Text(
-                    "XX cazas",
+                    detailsUser.ubiCazas.length.toString() + " cazas",
                     style: TextStyle(fontWeight: FontWeight.bold),
                   )
                 ],
@@ -60,10 +60,16 @@ class Perfil extends StatelessWidget{
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  color: Colors.blue,
+                  color: Colors.red,
                 ),
                 onTap: (){
                   print("Podium");
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Podium(detailsUser: detailsUser,),
+                    ),
+                  );
                 },
               ),
             ),
@@ -82,10 +88,16 @@ class Perfil extends StatelessWidget{
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  color: Colors.blue,
+                  color: Colors.red,
                 ),
                 onTap: (){
                   print("Mapa de cazas");
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Mapa(detailsUser: detailsUser,),
+                    ),
+                  );
                 },
               ),
             ),
