@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:camera/camera.dart';
+import 'package:caza_mayor/caza.dart';
+import 'package:caza_mayor/clases.dart';
 import 'package:caza_mayor/perfil.dart';
 import 'package:caza_mayor/main.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';
@@ -14,7 +15,7 @@ import 'package:esys_flutter_share/esys_flutter_share.dart';
 // Pantalla que permite hacer una foto con la camara dada.
 class TakePictureScreen extends StatefulWidget {
   final CameraDescription camera;
-  final FirebaseUser detailsUser;
+  final Usuario detailsUser;
 
   const TakePictureScreen({
     Key key,
@@ -66,7 +67,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                     child: Container(
                         child: Image(
                             fit: BoxFit.cover,
-                            image: new NetworkImage(widget.detailsUser.photoUrl)
+                            image: new NetworkImage(widget.detailsUser.foto)
                         )
                     ),
                   ),
@@ -139,18 +140,17 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                             // Añade la imagen a la lista de imagenes.
                             pathsImages.add({"ruta": path, "seleccionada": false});
                             print("foto");
-                            // sleep(const Duration(seconds: 1)); <----------------------------------
+                            // sleep(const Duration(seconds: 3)); <----------------------------------
                           }
                           // Coordenadas de la captura
                           Geolocator geolocator = Geolocator();
                           Position currentLocation = await geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
 
-
                           // Cuando la foto se haga, la muestra en otra pantalla.
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => DisplayPictureScreen(location: currentLocation,),
+                              builder: (context) => DisplayPictureScreen(location: currentLocation, detailsUser: widget.detailsUser,),
                             ),
                           );
                         } catch (e) {
@@ -176,14 +176,15 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 // Pantalla que muestra las fotos hechas por el usuario
 class DisplayPictureScreen extends StatelessWidget {
   final Position location;
+  final Usuario detailsUser;
 
-  const DisplayPictureScreen({Key key, @required this.location}) : super(key: key);
+  const DisplayPictureScreen({Key key, @required this.location, @required this.detailsUser}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Imagenes')),
-      body: Galeria(location: location,),
+      body: Galeria(location: location, detailsUser: detailsUser,),
     );
   }
 }
@@ -229,8 +230,9 @@ class ImagenGaleriaState extends State<ImagenGaleria>{
 
 class Galeria extends StatefulWidget{
   final Position location;
+  final Usuario detailsUser;
 
-  const Galeria({Key key, @required this.location}): super(key: key);
+  const Galeria({Key key, @required this.location, @required this.detailsUser}): super(key: key);
 
   @override
   State<Galeria> createState(){
@@ -269,7 +271,7 @@ class GaleriaState extends State<Galeria>{
           child: Container(
               height: 75,
               width: MediaQuery.of(context).size.width,
-              color: Colors.blue,
+              color: Colors.red,
               child: Center(child: Icon(Icons.share))
           ),
           onTap: () async {
@@ -280,6 +282,25 @@ class GaleriaState extends State<Galeria>{
             print(texto);
             File imagen = imgSeleccionada();
             await Share.file("Caza Mayor", "cazamayor.png", imagen.readAsBytesSync(), "image/png", text: texto);
+
+            widget.detailsUser.ubiCazas.add(new Ubicacion(latitud: widget.location.latitude, longitud: widget.location.longitude));
+
+            try {
+              final databaseReference = Firestore.instance;
+              databaseReference.collection('usuarios').document(
+                  widget.detailsUser.uid)
+                  .updateData(
+                  {'ubiCazas': widget.detailsUser.ubiCazas.map((ubicacion) => ubicacion.toJson()).toList() });
+            }catch(e){
+              print(e.toString());
+            }
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Caza(imagen: imagen, numCazas: widget.detailsUser.ubiCazas.length),
+              )
+            );
           },
         ),
       ],
