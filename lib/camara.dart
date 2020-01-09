@@ -140,7 +140,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                             // Añade la imagen a la lista de imagenes.
                             pathsImages.add({"ruta": path, "seleccionada": false});
                             print("foto");
-                            // sleep(const Duration(seconds: 3)); <----------------------------------
+                            sleep(const Duration(seconds: 3));
                           }
                           // Coordenadas de la captura
                           Geolocator geolocator = Geolocator();

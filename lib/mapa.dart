@@ -45,8 +45,14 @@ class MapaState extends State<Mapa>{
       body: Center(
         child: new FlutterMap(
           options: new MapOptions(
-            center: new LatLng(40.941526, -4.118651),
-            zoom: 15.0
+            center:
+            (widget.detailsUser.ubiCazas.length != 0
+            ?new LatLng(
+                widget.detailsUser.ubiCazas.elementAt(0).latitud,
+                widget.detailsUser.ubiCazas.elementAt(0).longitud)
+            :new LatLng(0.0, 0.0)
+            ),
+            zoom: 16.0
           ),
           layers: [
             new TileLayerOptions(

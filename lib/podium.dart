@@ -71,7 +71,7 @@ class PodiumState extends State<Podium>{
       }
 
       // ubicar al usuario
-      pos = usuarios.indexOf(widget.detailsUser) + 2;
+      pos = usuarios.indexOf(usuarios.firstWhere((user) => user.uid == widget.detailsUser.uid)) + 1;
 
     }catch(e){
       print("Error: " + e.toString());
